@@ -1,27 +1,19 @@
 const express = require('express');
-const mysql = require('mysql2');
+
 const inputCheck = require('./utils/inputCheck');
 
 const PORT = process.env.PORT || 3001;
 const app = express();
 
+const db = require('./db/connection');
+
 // Express middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-// Connect to database
-const db = mysql.createConnection(
-  {
-    host: 'localhost',
-    // Your MySQL username,
-    user: 'root',
-    // Your MySQL password
-    password: '(Victor7563)',
-    database: 'election'
-  },
-  console.log('Connected to the election database.')
-);
 
+
+// GET ALL PARTIES
 app.get('/api/parties', (req, res) => {
   const sql = `SELECT * FROM parties`;
   db.query(sql, (err, rows) => {
@@ -32,6 +24,23 @@ app.get('/api/parties', (req, res) => {
     res.json({
       message: 'success',
       data: rows
+    });
+  });
+});
+
+
+// GET SINGLE PARTY
+app.get('/api/party/:id', (req, res) => {
+  const sql = `SELECT * FROM parties WHERE id = ?`;
+  const params = [req.params.id];
+  db.query(sql, params, (err, row) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    res.json({
+      message: 'success',
+      data: row
     });
   });
 });
@@ -81,6 +90,8 @@ app.get('/api/candidate/:id', (req, res) => {
   });
 });
 
+
+// DELETE SINGLE PARTY
 app.delete('/api/party/:id', (req, res) => {
   const sql = `DELETE FROM parties WHERE id = ?`;
   const params = [req.params.id];
